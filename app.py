@@ -119,7 +119,7 @@ with summary_tab:
     primary = results[results.Outcome == "Purchase"].copy()
     primary["Significant after Holm correction"] = primary.p_adjusted < 0.05
     best = primary.sort_values("diff", ascending=False).iloc[0]
-    positives = primary[(primary.diff > 0) & (primary.p_adjusted < 0.05)]
+    positives = primary[(primary["diff"] > 0) & (primary["p_adjusted"] < 0.05)]
     st.subheader("Recommendation")
     if len(positives) == 2:
         st.success(f"Both email campaigns increased purchase conversion versus no email. The stronger observed candidate is **{best.Campaign}**; validate its economics and customer targeting in a follow-up experiment before broad rollout.")
