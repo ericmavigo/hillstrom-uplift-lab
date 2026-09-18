@@ -14,7 +14,9 @@ Every notebook contains an **Open in Colab** badge and can be run independently.
 
 ## Executive Streamlit review
 
-The dashboard brings the findings together: a business recommendation, treatment-versus-control purchase lift, experiment uncertainty, a data-quality snapshot, and the five-model evaluation. The app fetches the public CSV automatically if it is not present locally.
+**Published app:** [Open the Hillstrom executive review](https://hillstrom-uplift-lab-btwvfzeawp2rp6jfpmt8fn.streamlit.app/).
+
+The dashboard brings the findings together: a business recommendation, treatment-versus-control purchase lift, experiment uncertainty, a data-quality snapshot, and the five-model evaluation. The app fetches the public CSV automatically if it is not present locally. After training, held-out model results stay visible in both the model lab and executive summary for the current session.
 
 Run it locally:
 
@@ -24,7 +26,7 @@ python download_data.py
 streamlit run app.py
 ```
 
-To publish with [Streamlit Community Cloud](https://share.streamlit.io/), connect this public GitHub repository and select branch `main` and entrypoint `app.py`.
+The public app is deployed on [Streamlit Community Cloud](https://share.streamlit.io/) from branch `main` and entrypoint `app.py`.
 
 ## Business question
 
