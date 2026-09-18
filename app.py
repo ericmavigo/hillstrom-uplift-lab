@@ -5,10 +5,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
 from scipy import stats
-from sklearn.base import clone
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LogisticRegression, Ridge
@@ -79,9 +77,10 @@ def make_preprocessor() -> ColumnTransformer:
 
 
 def make_classifier(family: str):
-    estimator = (LogisticRegression(max_iter=1500, class_weight="balanced") if family == "Logistic regression"
+    # Keep probabilities aligned with the natural outcome rate for effect estimation.
+    estimator = (LogisticRegression(max_iter=1500) if family == "Logistic regression"
                  else RandomForestClassifier(n_estimators=180, min_samples_leaf=25, max_features=0.8,
-                                             class_weight="balanced_subsample", n_jobs=-1, random_state=42))
+                                             n_jobs=-1, random_state=42))
     return make_pipeline(make_preprocessor(), estimator)
 
 
