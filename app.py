@@ -159,6 +159,7 @@ with summary_tab:
     if model_result is None:
         st.info("The five uplift models are ready to run in the **Customer targeting models** tab. Their held-out ranking results will appear here after training.")
     else:
+        st.caption(f"Last run: {st.session_state.get('model_config', 'configuration unavailable')}. Results are held-out estimates, not a guaranteed profit forecast.")
         st.dataframe(model_result, use_container_width=True, hide_index=True)
 
     st.markdown("#### Decision guardrails")
@@ -177,11 +178,15 @@ with model_tab:
     if st.button("Train five models", type="primary"):
         scores, curves, split_info = cached_model_run(df, treatment, outcome, base, test_size)
         st.session_state["model_scores"] = scores
+        st.session_state["model_curves"] = curves
+        st.session_state["model_split_info"] = split_info
+        st.session_state["model_config"] = f"{treatment} vs no email · {outcome_label.lower()} · {base} · {1-test_size:.0%} training / {test_size:.0%} evaluation"
+    if "model_scores" in st.session_state:
         st.markdown("**Evaluation split**")
-        st.dataframe(split_info, use_container_width=True, hide_index=True)
+        st.dataframe(st.session_state["model_split_info"], use_container_width=True, hide_index=True)
         st.markdown("**Held-out results**")
-        st.dataframe(scores, use_container_width=True, hide_index=True)
-        st.plotly_chart(px.line(curves, x="Targeted share", y="Incremental outcome gain", color="Model",
+        st.dataframe(st.session_state["model_scores"], use_container_width=True, hide_index=True)
+        st.plotly_chart(px.line(st.session_state["model_curves"], x="Targeted share", y="Incremental outcome gain", color="Model",
                                 title="Qini curves versus random targeting"), use_container_width=True)
         st.caption("Qini area above random measures how well a model ranks incremental responders. Observed lift in the top 30% compares treatment and control outcomes among the highest-ranked customers. Use the randomized experiment to confirm any proposed targeting policy.")
     else:
