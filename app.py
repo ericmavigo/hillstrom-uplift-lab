@@ -107,6 +107,23 @@ except Exception as exc:
     st.exception(exc)
     st.stop()
 
+def queue_model_run() -> None:
+    st.session_state["run_model_comparison"] = True
+
+
+if st.session_state.pop("run_model_comparison", False):
+    treatment_choice = st.session_state.get("model_treatment", "Mens E-Mail")
+    outcome_choice = st.session_state.get("model_outcome", "Purchase")
+    family_choice = st.session_state.get("model_family", "Logistic regression")
+    test_size_choice = st.session_state.get("model_test_size", 0.25)
+    scores, curves, split_info = cached_model_run(
+        df, treatment_choice, OUTCOMES[outcome_choice], family_choice, test_size_choice
+    )
+    st.session_state["model_scores"] = scores
+    st.session_state["model_curves"] = curves
+    st.session_state["model_split_info"] = split_info
+    st.session_state["model_config"] = f"{treatment_choice} vs no email · {outcome_choice.lower()} · {family_choice} · {1-test_size_choice:.0%} training / {test_size_choice:.0%} evaluation"
+
 results = all_experiment_results(df)
 st.title("Executive Campaign Review")
 st.caption("Hillstrom randomized email experiment · 64,000 retail customers · Primary business outcome: purchase conversion")
@@ -169,18 +186,13 @@ with summary_tab:
 with model_tab:
     st.subheader("Which customers respond because of the email?")
     st.write("Uplift models estimate the incremental change associated with treatment. This is different from predicting who is likely to buy regardless of the email.")
-    treatment = st.selectbox("Email campaign", ["Mens E-Mail", "Womens E-Mail"])
-    outcome_label = st.selectbox("Customer outcome", ["Purchase", "Visit"], index=0)
+    treatment = st.selectbox("Email campaign", ["Mens E-Mail", "Womens E-Mail"], key="model_treatment")
+    outcome_label = st.selectbox("Customer outcome", ["Purchase", "Visit"], index=0, key="model_outcome")
     outcome = OUTCOMES[outcome_label]
-    base = st.selectbox("Shared base learner", ["Logistic regression", "Random forest"])
-    test_size = st.slider("Held-out evaluation share", 0.15, 0.35, 0.25, 0.05)
+    base = st.selectbox("Shared base learner", ["Logistic regression", "Random forest"], key="model_family")
+    test_size = st.slider("Held-out evaluation share", 0.15, 0.35, 0.25, 0.05, key="model_test_size")
     st.write("The comparison includes S-learner, T-learner, X-learner, class transformation, and transformed outcome. All use pre-treatment features and the same train/evaluation split. Exact repeated rows are kept together to limit leakage.")
-    if st.button("Train five models", type="primary"):
-        scores, curves, split_info = cached_model_run(df, treatment, outcome, base, test_size)
-        st.session_state["model_scores"] = scores
-        st.session_state["model_curves"] = curves
-        st.session_state["model_split_info"] = split_info
-        st.session_state["model_config"] = f"{treatment} vs no email · {outcome_label.lower()} · {base} · {1-test_size:.0%} training / {test_size:.0%} evaluation"
+    st.button("Train five models", type="primary", on_click=queue_model_run)
     if "model_scores" in st.session_state:
         if "model_split_info" in st.session_state:
             st.markdown("**Evaluation split**")
