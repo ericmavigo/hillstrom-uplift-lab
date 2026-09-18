@@ -182,12 +182,14 @@ with model_tab:
         st.session_state["model_split_info"] = split_info
         st.session_state["model_config"] = f"{treatment} vs no email · {outcome_label.lower()} · {base} · {1-test_size:.0%} training / {test_size:.0%} evaluation"
     if "model_scores" in st.session_state:
-        st.markdown("**Evaluation split**")
-        st.dataframe(st.session_state["model_split_info"], use_container_width=True, hide_index=True)
+        if "model_split_info" in st.session_state:
+            st.markdown("**Evaluation split**")
+            st.dataframe(st.session_state["model_split_info"], use_container_width=True, hide_index=True)
         st.markdown("**Held-out results**")
         st.dataframe(st.session_state["model_scores"], use_container_width=True, hide_index=True)
-        st.plotly_chart(px.line(st.session_state["model_curves"], x="Targeted share", y="Incremental outcome gain", color="Model",
-                                title="Qini curves versus random targeting"), use_container_width=True)
+        if "model_curves" in st.session_state:
+            st.plotly_chart(px.line(st.session_state["model_curves"], x="Targeted share", y="Incremental outcome gain", color="Model",
+                                    title="Qini curves versus random targeting"), use_container_width=True)
         st.caption("Qini area above random measures how well a model ranks incremental responders. Observed lift in the top 30% compares treatment and control outcomes among the highest-ranked customers. Use the randomized experiment to confirm any proposed targeting policy.")
     else:
         st.info("Choose the outcome and base learner, then run the five-model comparison. Results will also appear in the executive summary.")
