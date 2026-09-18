@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+.streamlit/secrets.toml
+*.py[cod]
+data/raw/hillstrom.csv
+work/
+
