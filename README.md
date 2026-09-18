@@ -1,14 +1,22 @@
 # Hillstrom Uplift Lab
 
-An English-language Streamlit app for exploring the Hillstrom randomized email experiment, auditing its data, estimating campaign impact, and comparing five uplift-learning approaches.
+An end-to-end portfolio project built as **three reproducible Python notebooks** plus a **Streamlit executive review**. The notebooks open directly in Google Colab and clone this repository to retrieve their code and data.
 
-## Project question
+## Start here
 
-Did an email campaign increase visits or purchases? After measuring its average effect against a randomized no-email control, can machine learning identify customer profiles with larger incremental responses?
+| Step | Notebook | Purpose |
+|---|---|---|
+| 1 | [00 · Data audit](https://colab.research.google.com/github/ericmavigo/hillstrom-uplift-lab/blob/main/notebooks/00_data_audit.ipynb) | Inspect tables, schema, missingness, repeated rows, group sizes, and pre-treatment balance. |
+| 2 | [01 · A/B experiment](https://colab.research.google.com/github/ericmavigo/hillstrom-uplift-lab/blob/main/notebooks/01_ab_experiment.ipynb) | Estimate campaign effects on purchases, visits, and spend, with confidence intervals and corrected tests. |
+| 3 | [02 · Uplift models](https://colab.research.google.com/github/ericmavigo/hillstrom-uplift-lab/blob/main/notebooks/02_uplift_models.ipynb) | Train and compare five uplift strategies on a held-out randomized sample. |
 
-The treatment in this dataset is receiving a marketing email, **not receiving a discount**. The three randomized groups are `Mens E-Mail`, `Womens E-Mail`, and `No E-Mail`.
+Every notebook contains an **Open in Colab** badge and can be run independently. No Kaggle login or uploaded credential is required.
 
-## Run locally
+## Executive Streamlit review
+
+The dashboard brings the findings together: a business recommendation, treatment-versus-control purchase lift, experiment uncertainty, a data-quality snapshot, and the five-model evaluation. The app fetches the public CSV automatically if it is not present locally.
+
+Run it locally:
 
 ```bash
 python -m pip install -r requirements.txt
@@ -16,29 +24,35 @@ python download_data.py
 streamlit run app.py
 ```
 
-The app includes a data overview and dictionary, data quality checks, A/B experiment results, and an interactive model comparison. The source data is downloaded at runtime and is excluded from Git.
+To publish with [Streamlit Community Cloud](https://share.streamlit.io/), connect this public GitHub repository and select branch `main` and entrypoint `app.py`.
 
-## Five uplift approaches
+## Business question
 
-- **S-learner:** a single outcome model receives both customer features and treatment assignment.
-- **T-learner:** separate outcome models are fit for treatment and control.
-- **X-learner:** imputed treatment effects from both groups are combined using the treatment propensity.
-- **Class transformation:** transforms the binary outcome so treatment-effect estimation becomes a classification task.
-- **Transformed outcome:** regresses a treatment-weighted outcome that is unbiased under randomized assignment.
+Did sending a marketing email increase purchase conversion compared with sending no email? After measuring the average campaign effect, can machine learning rank customers by their estimated incremental response?
 
-The app lets you compare the methods with the same base learner and a held-out evaluation set. Features are limited to information available before treatment. Exact repeated rows are kept together when splitting to reduce leakage.
+The treatment in this historical randomized experiment is **receiving an email**, not receiving a price discount. The arms are `Mens E-Mail`, `Womens E-Mail`, and `No E-Mail`. Purchase conversion is the preselected primary outcome; visits and spend are supporting outcomes.
 
-## Evaluation and interpretation
+## Five uplift strategies
 
-The experiment view reports treatment and control means, an effect interval, a p-value, and pre-treatment balance checks. The model view reports Qini area above random ranking and observed lift among the top 30% of scored customers. These measures assess whether a model prioritizes incremental responders; they do not replace validation in a new randomized campaign before deploying a targeting policy.
+The dashboard and modeling notebook share the implementation in `src/uplift.py`:
 
-Binary outcomes use a two-proportion z-test and Newcombe-Wilson confidence interval. Spend uses Welch's test and a bootstrap confidence interval.
+- **S-learner:** one outcome model uses features and treatment assignment.
+- **T-learner:** separate outcome models for treatment and control.
+- **X-learner:** estimates effects within each arm and combines them by treatment propensity.
+- **Class transformation:** converts randomized treatment-effect estimation into a classification task.
+- **Transformed outcome:** regresses a treatment-weighted pseudo-outcome.
 
-## Data and references
+All methods use the same selected base learner, pre-treatment customer features, and held-out split. Evaluation reports Qini area above random ranking and observed lift among the top 30% of scored customers. A model score is not proof of future profit; a proposed targeting policy should be confirmed in a new randomized test.
+
+## Data checks and limitations
+
+The source file contains 64,000 customers and no customer ID. Exact repeated rows are reported but retained because they may represent different people with identical recorded values. Identical rows are kept together when creating the model evaluation split.
+
+The dataset does not include campaign delivery costs, product margins, or discount amounts. It supports measuring the effect of email campaigns, but cannot establish that sending them is profitable or estimate the effect of a price reduction.
+
+## Data source
 
 - [Hillstrom dataset on Kaggle](https://www.kaggle.com/datasets/bofulee/kevin-hillstrom-minethatdata-e-mailanalytics)
 - [MineThatData email analytics challenge](https://blog.minethatdata.com/2008/03/minethatdata-e-mail-analytics-and-data.html)
 - [Experiment description](https://stochasticsolutions.com/pdf/HillstromChallenge.pdf)
-
-This is a public randomized marketing experiment. Customer and feature names are historical and reflect the source dataset. The dataset contains no customer identifier, so exact repeated rows cannot be confidently classified as duplicate records.
 
